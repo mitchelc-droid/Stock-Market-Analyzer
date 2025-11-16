@@ -16,7 +16,7 @@ function App() {
     setMetrics(null);
 
     try {
-      const response = await axios.get(`http://localhost:5000/api/metrics/${ticker}`);
+      const response = await axios.get(`http://127.0.0.1:5000/api/metrics/${ticker}`);
       setMetrics(response.data);
     } catch (err) {
       if (err.response && err.response.data && err.response.data.error) {
