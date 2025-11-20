@@ -1,104 +1,98 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import axios from "axios";
 import StockChart from "./components/StockChart";
-import MetricsPanel from "./components/MetricsPanel";
+import axios from "axios";
 
-/*React: JS library that uses a virtual DOM to only reflect changes made and emphasizes modularity
-  useState: Allows webpage to remember things
-  Bootstrap: CSS library 
-  axios: Enables requests to backend server, skips JSON converting, catches errors, etc.
-  StockChart & MetricsPanel: Custom components that appear on the page*/
-
-//The entire page the user will see
 function App() {
-  const [ticker, setTicker] = useState();
-  const [metrics, setMetrics] = useState(null);
+  const [ticker, setTicker] = useState("AAPL");
+  const [inputTicker, setInputTicker] = useState("AAPL");
+  const [metrics, setMetrics] = useState([]);
+  const [timeSpan, setTimeSpan] = useState("1m");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  //Changing variables that the website will need to remember and automatically reflect changes
 
-  const validateTicker = () => {
-    if (!ticker || ticker.trim() === "") {
-      setError("Ticker cannot be empty.");
-      return false;
-    }
-
-    if (!/^[A-Z]{1,5}$/.test(ticker)) {
-      setError("Ticker must be 1–5 letters (A–Z only).");
-      return false;
-    }
-
-    return true;
-  };
-
-  //Function that fetches the backend stock infromation
-  const loadMetrics = async () => {
+  const loadMetrics = async (selectedTicker = ticker, selectedSpan = timeSpan) => {
     setLoading(true);
     setError(null);
-    setMetrics(null);
-
-    //Request information from provided ticker, if not found
     try {
       const response = await axios.get(
-        //.then chain bypassed with axios
-        `http://127.0.0.1:5000/api/metrics/${ticker}`
+        `http://127.0.0.1:5000/api/metrics/${selectedTicker}?span=${selectedSpan}`
       );
-      setMetrics(response.data); //Calls setMetrics so that UI changes when ticker changes
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        //Did the backend send a response, does it have a JSON body, does it have an error field?
-        setError(err.response.data.error); //Set error message to response error
+
+      const ts = response.data.timeseries;
+      if (ts && Object.keys(ts).length > 0) {
+        // Convert timeseries object to array
+        const timeseriesArray = Object.keys(ts).map(date => ({
+          date,
+          ...ts[date],
+        }));
+        setMetrics(timeseriesArray);
       } else {
-        setError("An unexpected error occurred."); //Unkown error occured
+        setMetrics([]);
+        setError("No data available for this ticker/time span.");
       }
-      console.error("API error:", err); //Alert user with error message
+    } catch (err) {
+      console.error(err);
+      setMetrics([]);
+      setError("Failed to fetch stock data.");
     } finally {
-      setLoading(false); //Reflect that app is not loading anymore
+      setLoading(false);
     }
   };
 
+  // Reload when ticker or timespan changes
+  useEffect(() => {
+    loadMetrics(ticker, timeSpan);
+  }, [ticker, timeSpan]);
+
   return (
-    <div className="container mt-4">
-      <h1>Stock Dashboard</h1>
+    <div
+      className="container-fluid mt-4"
+      style={{ backgroundColor: "#1e1e1e", minHeight: "100vh" }}
+    >
+      <h1 className="text-light mb-3">Stock Dashboard</h1>
+
+      {/* Ticker input */}
       <div className="input-group mb-3">
         <input
           className="form-control"
-          value={ticker}
-          onChange={(e) => {
-            setTicker(e.target.value.toUpperCase());
-            setError(""); // Clear error when typing
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              if (validateTicker()) {
-                loadMetrics();
-              }
-            }
-          }}
+          value={inputTicker}
+          onChange={e => setInputTicker(e.target.value.toUpperCase())}
           placeholder="Enter ticker (e.g., AAPL)"
         />
-
         <button
           className="btn btn-primary"
-          onClick={() => {
-            if (validateTicker()) {
-              loadMetrics();
-            }
-          }}
-          disabled={loading}
+          onClick={() => setTicker(inputTicker)}
+          disabled={loading || !inputTicker.trim()}
         >
-          {loading ? "Loading..." : "Load"}
+          Load
         </button>
       </div>
 
+      {/* Time span buttons */}
+      <div className="btn-group mb-3">
+        {["1d", "1w", "1m", "3m", "1y"].map(span => (
+          <button
+            key={span}
+            className={`btn btn-secondary ${timeSpan === span ? "active" : ""}`}
+            onClick={() => setTimeSpan(span)}
+            disabled={loading}
+          >
+            {span}
+          </button>
+        ))}
+      </div>
+
+      {/* Error message */}
       {error && <p className="text-danger">{error}</p>}
 
-      {metrics && (
-        <>
-          <StockChart timeseries={metrics.timeseries} />
-          <MetricsPanel metrics={metrics} />
-        </>
+      {/* Loading message */}
+      {loading && <p className="text-light">Loading...</p>}
+
+      {/* Stock chart */}
+      {!loading && metrics.length > 0 && <StockChart data={metrics} height={400} />}
+      {!loading && !metrics.length && !error && (
+        <p className="text-light">No data to display.</p>
       )}
     </div>
   );

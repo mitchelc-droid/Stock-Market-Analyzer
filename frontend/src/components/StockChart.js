@@ -1,53 +1,61 @@
-import React from 'react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer
-} from 'recharts';
+import React, { useRef, useEffect } from "react";
+import { createChart } from "lightweight-charts";
 
-export default function StockChart({ timeseries }) {
-  if (!timeseries || !timeseries.dates) return null;
+export default function StockChart({ data, height = 400 }) {
+  const chartContainerRef = useRef();
+  const chartRef = useRef();
+  const candleSeriesRef = useRef();
 
-  const data = timeseries.dates.map((d, i) => ({
-    date: d,
-    close: timeseries.close[i],
-    sma50: timeseries.sma50[i],
-    sma200: timeseries.sma200[i],
-    bb_high: timeseries.bb_high[i],
-    bb_low: timeseries.bb_low[i]
-  }));
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container || !data || !data.length) return;
 
-  return (
-    <div style={{ width: '100%', height: 400 }} className="mb-4">
-      <ResponsiveContainer>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" hide />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="close" dot={false} stroke="#0d6efd" />
-          <Line type="monotone" dataKey="sma50" dot={false} stroke="#198754" />
-          <Line type="monotone" dataKey="sma200" dot={false} stroke="#dc3545" />
-          <Line
-            type="monotone"
-            dataKey="bb_high"
-            dot={false}
-            stroke="#6c757d"
-            strokeDasharray="5 5"
-          />
-          <Line
-            type="monotone"
-            dataKey="bb_low"
-            dot={false}
-            stroke="#6c757d"
-            strokeDasharray="5 5"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+    // Create chart
+    chartRef.current = createChart(container, {
+      width: container.clientWidth,
+      height,
+      layout: { backgroundColor: "#1e1e1e", textColor: "aliceblue" },
+      grid: { vertLines: { color: "#444" }, horzLines: { color: "#444" } },
+      crosshair: { mode: 1 },
+      rightPriceScale: { borderColor: "#555" },
+      timeScale: { borderColor: "#555", timeVisible: true },
+    });
+
+    // Candlestick series
+    candleSeriesRef.current = chartRef.current.addCandlestickSeries({
+      upColor: "#4caf50",
+      downColor: "#f44336",
+      borderUpColor: "#4caf50",
+      borderDownColor: "#f44336",
+      wickUpColor: "#4caf50",
+      wickDownColor: "#f44336",
+    });
+
+    // Set initial data
+    candleSeriesRef.current.setData(
+      data.map(d => ({
+        time: d.time,
+        open: d.open,
+        high: d.high,
+        low: d.low,
+        close: d.close,
+      }))
+    );
+
+    // Handle resizing
+    const handleResize = () => {
+      chartRef.current?.applyOptions({ width: container.clientWidth });
+    };
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      chartRef.current?.remove();
+      chartRef.current = null;
+      candleSeriesRef.current = null;
+    };
+  }, [data, height]);
+
+  return <div ref={chartContainerRef} style={{ width: "100%", height }} />;
 }

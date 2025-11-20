@@ -1,3 +1,9 @@
-body {
-  background: #f8f9fa;
+html, body, #root {
+  background-color: #000000e8;
+  box-sizing: border-box;
 }
+
+.container h1 {
+  color: aliceblue;
+}
+
