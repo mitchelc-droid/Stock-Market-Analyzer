@@ -14,8 +14,16 @@ export default function StockChart({ data, height = 400 }) {
     chartRef.current = createChart(container, {
       width: container.clientWidth,
       height,
-      layout: { backgroundColor: "#1e1e1e", textColor: "aliceblue" },
-      grid: { vertLines: { color: "#444" }, horzLines: { color: "#444" } },
+      layout: {
+        background: { color: '#222' },
+        textColor: '#DDD'
+      },
+      grid: {
+        vertLines: { color: '#444' },
+        horzLines: { color: '#444' },
+      },
+      height: 400,
+      width: 1200,
       crosshair: { mode: 1 },
       rightPriceScale: { borderColor: "#555" },
       timeScale: { borderColor: "#555", timeVisible: true },
@@ -23,6 +31,7 @@ export default function StockChart({ data, height = 400 }) {
 
     // Candlestick series
     candleSeriesRef.current = chartRef.current.addCandlestickSeries({
+      color: '#2962FF',
       upColor: "#4caf50",
       downColor: "#f44336",
       borderUpColor: "#4caf50",
@@ -41,6 +50,14 @@ export default function StockChart({ data, height = 400 }) {
         close: d.close,
       }))
     );
+
+    candleSeriesRef.current.priceScale().applyOptions({
+      autoScale: false, // disables auto scaling based on visible content
+      scaleMargins: {
+        top: 0.1,
+        bottom: 0.2,
+      },
+    });
 
     // Handle resizing
     const handleResize = () => {

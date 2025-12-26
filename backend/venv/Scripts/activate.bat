@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=W:\Personal Project\backend\venv
+set VIRTUAL_ENV=C:\Program Files\COMP\Stock Market Analyzer\Stock-Market-Analyzer\backend\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
