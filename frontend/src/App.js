@@ -12,7 +12,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const loadMetrics = async (selectedTicker = ticker, selectedSpan = timeSpan) => {
+  const loadMetrics = async (
+    selectedTicker = ticker,
+    selectedSpan = timeSpan
+  ) => {
     setLoading(true);
     setError(null);
 
@@ -68,21 +71,23 @@ function App() {
         </button>
       </div>
 
-      
-
       {/* Error message */}
       {error && <p className="text-danger">{error}</p>}
 
       {/* Loading message */}
       {loading && <p className="text-light">Loading...</p>}
 
-      {/* Metrics panel */}
-      {!loading && metrics && <MetricsPanel metrics={metrics} />}
+      <div
+        style={{ width: "70%" }} // sets the width to 80% of parent
+      >
+        {/* Metrics panel */}
+        {!loading && metrics && <MetricsPanel metrics={metrics} />}
 
-      {/* Stock chart */}
-      {!loading && metrics?.timeseries?.length > 0 && (
-        <StockChart data={metrics.timeseries} height={400} />
-      )}
+        {/* Stock chart */}
+        {!loading && metrics?.timeseries?.length > 0 && (
+          <StockChart data={metrics.timeseries} height={400} />
+        )}
+      </div>
 
       {/* Time span buttons */}
       <div className="btn-group mb-3">

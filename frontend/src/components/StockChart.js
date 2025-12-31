@@ -24,7 +24,6 @@ export default function StockChart({ data, height = 400 }) {
         horzLines: { color: "#444" },
       },
       height: 400,
-      width: 1200,
       crosshair: { mode: 1 },
       rightPriceScale: { borderColor: "#555" },
       timeScale: { borderColor: "#555", timeVisible: true },
