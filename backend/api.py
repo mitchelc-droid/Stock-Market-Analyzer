@@ -18,6 +18,8 @@ def get_metrics(ticker):
         df = yf.download(ticker, period='2y', progress=False, auto_adjust=True)
         if df.empty:
             return jsonify({"error": f"No data returned for ticker {ticker}"}), 404
+        
+        print(df[['Close', 'Volume']].tail())
 
         # Flatten MultiIndex if needed
         if isinstance(df.columns, pd.MultiIndex):
@@ -64,6 +66,7 @@ def get_metrics(ticker):
                 "high": float(row["High"]),
                 "low": float(row["Low"]),
                 "close": float(row["Close"]),
+                "volume": int(row["Volume"]),
                 "sma50": float(row["SMA_50"]) if pd.notna(row["SMA_50"]) else None,
                 "sma200": float(row["SMA_200"]) if pd.notna(row["SMA_200"]) else None,
                 "bb_high": float(row["BB_high"]) if pd.notna(row["BB_high"]) else None,
@@ -89,4 +92,4 @@ def get_metrics(ticker):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, use_reloader=False)
+    app.run(debug=True, port=5000)

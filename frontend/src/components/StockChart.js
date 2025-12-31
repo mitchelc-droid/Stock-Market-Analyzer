@@ -5,6 +5,7 @@ export default function StockChart({ data, height = 400 }) {
   const chartContainerRef = useRef();
   const chartRef = useRef();
   const candleSeriesRef = useRef();
+  const volumeSeriesRef = useRef();
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -15,12 +16,12 @@ export default function StockChart({ data, height = 400 }) {
       width: container.clientWidth,
       height,
       layout: {
-        background: { color: '#222' },
-        textColor: '#DDD'
+        background: { color: "#222" },
+        textColor: "#DDD",
       },
       grid: {
-        vertLines: { color: '#444' },
-        horzLines: { color: '#444' },
+        vertLines: { color: "#444" },
+        horzLines: { color: "#444" },
       },
       height: 400,
       width: 1200,
@@ -31,7 +32,7 @@ export default function StockChart({ data, height = 400 }) {
 
     // Candlestick series
     candleSeriesRef.current = chartRef.current.addCandlestickSeries({
-      color: '#2962FF',
+      color: "#2962FF",
       upColor: "#4caf50",
       downColor: "#f44336",
       borderUpColor: "#4caf50",
@@ -42,7 +43,7 @@ export default function StockChart({ data, height = 400 }) {
 
     // Set initial data
     candleSeriesRef.current.setData(
-      data.map(d => ({
+      data.map((d) => ({
         time: d.time,
         open: d.open,
         high: d.high,
@@ -65,12 +66,41 @@ export default function StockChart({ data, height = 400 }) {
     };
     window.addEventListener("resize", handleResize);
 
+    // Adding volume histogram
+    volumeSeriesRef.current = chartRef.current.addHistogramSeries({
+      priceScaleId: "volume",
+      color: "#26a69a",
+      priceFormat: {
+        type: "volume",
+      },
+      scaleMargins: {
+        top: 0.8, // volume takes bottom 20%
+        bottom: 0,
+      },
+    });
+
+    chartRef.current.priceScale("volume").applyOptions({
+      scaleMargins: {
+        top: 0.8,
+        bottom: 0,
+      },
+    });
+
+    volumeSeriesRef.current.setData(
+      data.map((d) => ({
+        time: d.time,
+        value: d.volume,
+        color: d.close >= d.open ? "#4caf50" : "#f44336",
+      }))
+    );
+
     // Cleanup
     return () => {
       window.removeEventListener("resize", handleResize);
       chartRef.current?.remove();
       chartRef.current = null;
       candleSeriesRef.current = null;
+      volumeSeriesRef.current = null;
     };
   }, [data, height]);
 

@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Program Files\COMP\Stock Market Analyzer\Stock-Market-Analyzer\backend\venv"
+VIRTUAL_ENV="W:\Personal Project\backend\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
