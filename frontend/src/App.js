@@ -85,20 +85,24 @@ function App() {
 
         {/* Stock chart */}
         {!loading && metrics?.timeseries?.length > 0 && (
-          <StockChart data={metrics.timeseries} height={400} />
+          <StockChart
+            data={metrics.timeseries}
+            height={400}
+            timeSpan={timeSpan}
+          />
         )}
       </div>
 
       {/* Time span buttons */}
       <div className="btn-group mb-3">
-        {["1d", "1w", "1m", "3m", "1y"].map((span) => (
+        {["1d", "1w", "1m", "3m", "1y", "ytd"].map((span) => (
           <button
             key={span}
             className={`btn btn-secondary ${timeSpan === span ? "active" : ""}`}
             onClick={() => setTimeSpan(span)}
             disabled={loading}
           >
-            {span}
+            {span.toUpperCase()}
           </button>
         ))}
       </div>

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import yfinance as yf
 import pandas as pd
@@ -14,11 +14,34 @@ CORS(app)
 @app.route('/api/metrics/<ticker>')
 def get_metrics(ticker):
     try:
-        # Download historical data
-        df = yf.download(ticker, period='2y', progress=False, auto_adjust=True)
+        # Get span parameter from query string (default to 1m)
+        span = request.args.get('span', '1m')
+        
+        # Map span to yfinance period and interval (TradingView-style)
+        span_config = {
+            '1d': {'period': 'max', 'interval': '1m'},    # 1-min candles over all available data
+            '1w': {'period': 'max', 'interval': '5m'},    # 5-min candles over all available data
+            '1m': {'period': 'max', 'interval': '30m'},   # 30-min candles over all available data
+            '3m': {'period': 'max', 'interval': '1h'},    # 1-hour candles over all available data
+            '1y': {'period': 'max', 'interval': '1d'},    # Daily candles over all available data
+            'ytd': {'period': 'max', 'interval': '1d'}    # Daily candles over all available data
+        }
+        
+        config = span_config.get(span, {'period': '3mo', 'interval': '1d'})
+        
+        # Download historical data with appropriate period and interval
+        df = yf.download(
+            ticker, 
+            period=config['period'], 
+            interval=config['interval'],
+            progress=False, 
+            auto_adjust=True
+        )
+        
         if df.empty:
             return jsonify({"error": f"No data returned for ticker {ticker}"}), 404
         
+        print(f"Downloaded {len(df)} rows for {ticker} with span={span}")
         print(df[['Close', 'Volume']].tail())
 
         # Flatten MultiIndex if needed
@@ -47,12 +70,19 @@ def get_metrics(ticker):
 
         df['SMA_50'] = close.rolling(50).mean()
         df['SMA_200'] = close.rolling(200).mean()
-        macd = MACD(close)
-        df['MACD_line'] = macd.macd()
-        df['MACD_signal'] = macd.macd_signal()
-        bb = BollingerBands(close)
-        df['BB_high'] = bb.bollinger_hband()
-        df['BB_low'] = bb.bollinger_lband()
+        
+        # Only calculate MACD if we have enough data
+        if len(df) > 26:
+            macd = MACD(close)
+            df['MACD_line'] = macd.macd()
+            df['MACD_signal'] = macd.macd_signal()
+        
+        # Only calculate Bollinger Bands if we have enough data
+        if len(df) > 20:
+            bb = BollingerBands(close)
+            df['BB_high'] = bb.bollinger_hband()
+            df['BB_low'] = bb.bollinger_lband()
+        
         df['RSI'] = RSIIndicator(close).rsi()
         df['ATR'] = AverageTrueRange(high, low, close).average_true_range()
         df['OBV'] = OnBalanceVolumeIndicator(close, volume).on_balance_volume()
@@ -69,8 +99,8 @@ def get_metrics(ticker):
                 "volume": int(row["Volume"]),
                 "sma50": float(row["SMA_50"]) if pd.notna(row["SMA_50"]) else None,
                 "sma200": float(row["SMA_200"]) if pd.notna(row["SMA_200"]) else None,
-                "bb_high": float(row["BB_high"]) if pd.notna(row["BB_high"]) else None,
-                "bb_low": float(row["BB_low"]) if pd.notna(row["BB_low"]) else None
+                "bb_high": float(row.get("BB_high", pd.NA)) if pd.notna(row.get("BB_high", pd.NA)) else None,
+                "bb_low": float(row.get("BB_low", pd.NA)) if pd.notna(row.get("BB_low", pd.NA)) else None
             })
 
         latest = df.iloc[-1]
