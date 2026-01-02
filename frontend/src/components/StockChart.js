@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { createChart } from "lightweight-charts";
 
-export default function StockChart({ data, height = 400, timeSpan = "1m" }) {
+export default function StockChart({ data, height = 550, timeSpan = "1m" }) {
   const chartContainerRef = useRef();
   const chartRef = useRef();
   const candleSeriesRef = useRef();

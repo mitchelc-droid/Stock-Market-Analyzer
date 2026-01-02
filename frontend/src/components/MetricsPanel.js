@@ -1,7 +1,5 @@
 import React from "react";
 
-// This component uses the simple Object.entries layout you provided.
-// I've just wrapped it in the Bootstrap card structure for consistency.
 export default function MetricsPanel({ metrics }) {
   if (!metrics || !metrics.latest) return null;
 
@@ -47,11 +45,11 @@ export default function MetricsPanel({ metrics }) {
   };
 
   return (
-    <div className="card mb-3" style={{height: 200}}>
-      <div className="card-header" style={{ backgroundColor: "#b6afafff" }}>
-        <h5>Key Metrics for: {metrics.ticker}</h5>
+    <div className="card mb-3">
+      <div className="card-header py-2" style={{ backgroundColor: "#b6afafff" }}>
+        <h6 className="mb-0">Key Metrics: {metrics.ticker}</h6>
       </div>
-      <div className="card-body" style={{ backgroundColor: "#333" }}>
+      <div className="card-body py-2" style={{ backgroundColor: "#333" }}>
         <div
           className="row"
           style={{
@@ -61,16 +59,16 @@ export default function MetricsPanel({ metrics }) {
           }}
         >
           {Object.entries(latest).map(([key, value]) => (
-            <div className="col-lg-2 col-md-4 col-sm-6 mb-3" key={key}>
+            <div className="col-lg-2 col-md-4 col-sm-6 mb-2" key={key}>
               <div className="card text-center h-100">
-                <div className="card-body">
+                <div className="card-body py-2 px-2">
                   <h6
-                    className="card-title text-muted"
-                    style={{ fontSize: "0.9rem" }}
+                    className="card-title text-muted mb-1"
+                    style={{ fontSize: "0.75rem" }}
                   >
                     {formatKey(key)}
                   </h6>
-                  <p className="card-text fs-5 fw-bold">
+                  <p className="card-text fs-6 fw-bold mb-0">
                     {formatValue(key, value)}
                   </p>
                 </div>

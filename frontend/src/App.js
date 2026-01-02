@@ -11,7 +11,7 @@ function App() {
   const [timeSpan, setTimeSpan] = useState("1m");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Auto-refresh state
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(60); // seconds
@@ -56,19 +56,19 @@ function App() {
   useEffect(() => {
     // Only auto-refresh for intraday timeframes and if enabled
     if (!autoRefresh || (timeSpan !== "1d" && timeSpan !== "1w")) return;
-    
+
     const interval = setInterval(() => {
       console.log("Auto-refreshing data...");
       loadMetrics(ticker, timeSpan);
     }, refreshInterval * 1000);
-    
+
     return () => clearInterval(interval);
   }, [ticker, timeSpan, autoRefresh, refreshInterval]);
 
   // Format last updated time
   const getTimeSinceUpdate = () => {
     if (!lastUpdated) return "Never";
-    
+
     const seconds = Math.floor((new Date() - lastUpdated) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.floor(seconds / 60);
@@ -80,7 +80,7 @@ function App() {
   // Update the "time ago" display every second
   const [, setTick] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 1000);
+    const timer = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -108,66 +108,19 @@ function App() {
         </button>
       </div>
 
-      {/* Auto-refresh controls */}
-      <div className="mb-3 d-flex align-items-center gap-3">
-        <button
-          className={`btn ${autoRefresh ? "btn-success" : "btn-secondary"}`}
-          onClick={() => setAutoRefresh(!autoRefresh)}
-          disabled={timeSpan !== "1d" && timeSpan !== "1w"}
-        >
-          {autoRefresh ? "⏸ Pause" : "▶ Play"} Auto-Refresh
-        </button>
-        
-        <select
-          className="form-select"
-          style={{ width: "150px" }}
-          value={refreshInterval}
-          onChange={(e) => setRefreshInterval(Number(e.target.value))}
-          disabled={!autoRefresh}
-        >
-          <option value={30}>30 seconds</option>
-          <option value={60}>1 minute</option>
-          <option value={300}>5 minutes</option>
-          <option value={600}>10 minutes</option>
-        </select>
-
-        <span className="text-light">
-          Last updated: {getTimeSinceUpdate()}
-        </span>
-
-        <button
-          className="btn btn-outline-light btn-sm"
-          onClick={() => loadMetrics(ticker, timeSpan)}
-          disabled={loading}
-        >
-          🔄 Refresh Now
-        </button>
-      </div>
-
-      {/* Info text for auto-refresh */}
-      {(timeSpan === "1d" || timeSpan === "1w") && autoRefresh && (
-        <div className="alert alert-info mb-3">
-          Auto-refresh enabled - updating every {refreshInterval} seconds
-        </div>
-      )}
-
       {/* Error message */}
       {error && <p className="text-danger">{error}</p>}
 
       {/* Loading message */}
       {loading && <p className="text-light">Loading...</p>}
 
-      <div style={{ width: "70%" }}>
+      <div style={{ width: "85%" }}>
         {/* Metrics panel */}
         {!loading && metrics && <MetricsPanel metrics={metrics} />}
 
         {/* Stock chart */}
         {!loading && metrics?.timeseries?.length > 0 && (
-          <StockChart
-            data={metrics.timeseries}
-            height={400}
-            timeSpan={timeSpan}
-          />
+          <StockChart data={metrics.timeseries} timeSpan={timeSpan} />
         )}
       </div>
 
@@ -183,6 +136,44 @@ function App() {
             {span.toUpperCase()}
           </button>
         ))}
+      </div>
+
+      {/* Auto-refresh controls */}
+      <div style={{ display: "flex", justifyContent: "flex-end", width: "85%" }}>
+        <div className="mb-3 d-flex align-items-center gap-3">
+          <button
+            className={`btn ${autoRefresh ? "btn-success" : "btn-secondary"}`}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            disabled={timeSpan !== "1d" && timeSpan !== "1w"}
+          >
+            {autoRefresh ? "⏸ Pause" : "▶ Play"} Auto-Refresh
+          </button>
+
+          <select
+            className="form-select"
+            style={{ width: "150px" }}
+            value={refreshInterval}
+            onChange={(e) => setRefreshInterval(Number(e.target.value))}
+            disabled={!autoRefresh}
+          >
+            <option value={30}>30 seconds</option>
+            <option value={60}>1 minute</option>
+            <option value={300}>5 minutes</option>
+            <option value={600}>10 minutes</option>
+          </select>
+
+          <span className="text-light">
+            Last updated: {getTimeSinceUpdate()}
+          </span>
+
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={() => loadMetrics(ticker, timeSpan)}
+            disabled={loading}
+          >
+            🔄 Refresh Now
+          </button>
+        </div>
       </div>
 
       {!loading && !metrics && !error && (
