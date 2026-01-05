@@ -92,11 +92,16 @@ function App() {
       <h1 className="text-light mb-3">Stock Dashboard</h1>
 
       {/* Ticker input */}
-      <div className="input-group mb-3">
+      <div className="input-group mb-3" style={{ maxWidth: "400px", margin: "0 auto" }}>
         <input
           className="form-control"
           value={inputTicker}
           onChange={(e) => setInputTicker(e.target.value.toUpperCase())}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && inputTicker.trim() && !loading) {
+              setTicker(inputTicker);
+            }
+          }}
           placeholder="Enter ticker (e.g., AAPL)"
         />
         <button
@@ -141,29 +146,9 @@ function App() {
       {/* Auto-refresh controls */}
       <div style={{ display: "flex", justifyContent: "flex-end", width: "85%" }}>
         <div className="mb-3 d-flex align-items-center gap-3">
-          <button
-            className={`btn ${autoRefresh ? "btn-success" : "btn-secondary"}`}
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            disabled={timeSpan !== "1d" && timeSpan !== "1w"}
-          >
-            {autoRefresh ? "⏸ Pause" : "▶ Play"} Auto-Refresh
-          </button>
-
-          <select
-            className="form-select"
-            style={{ width: "150px" }}
-            value={refreshInterval}
-            onChange={(e) => setRefreshInterval(Number(e.target.value))}
-            disabled={!autoRefresh}
-          >
-            <option value={30}>30 seconds</option>
-            <option value={60}>1 minute</option>
-            <option value={300}>5 minutes</option>
-            <option value={600}>10 minutes</option>
-          </select>
 
           <span className="text-light">
-            Last updated: {getTimeSinceUpdate()}
+            Auto Update 30s - Last updated: {getTimeSinceUpdate()}
           </span>
 
           <button
@@ -182,5 +167,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;
